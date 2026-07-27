@@ -1,1 +1,1 @@
-# de-novo-transcriptome-assembly-for-the-characterization-of-rumen-microbial-AA-profile
+# De novo characterization of microbial AA profile
