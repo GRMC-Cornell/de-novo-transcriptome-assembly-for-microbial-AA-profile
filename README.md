@@ -1,4 +1,4 @@
-# De novo Transcriptome Assembly for Microbial Amino Acid Profiling
+# De novo Assembly for Microbial AA Profiling
 
 A computational workflow to infer the amino acid composition of active microbial communities directly from metatranscriptomic sequencing data using de novo transcriptome assembly.
 
@@ -29,8 +29,6 @@ The pipeline performs the following steps:
 ## Repository Contents
 
 | File | Description |
-
-|------|-------------|
 
 | `Script.py` | Main pipeline execution script |
 
@@ -70,7 +68,7 @@ pip install pandas numpy biopython
 
 The workflow expects predicted protein sequences and transcript abundance estimates generated from a de novo transcriptome assembly.
 
-Typical upstream tools include:
+Upstream tools include:
 
 - Trinity
 
@@ -80,9 +78,9 @@ Typical upstream tools include:
 
 Input files should include:
 
-- Predicted protein FASTA file
+- Predicted protein FASTA file (.faa)
 
-- Transcript abundance table
+- Transcript abundance table (.csv)
 
 ---
 
@@ -94,7 +92,7 @@ The pipeline generates:
 
 - Relative amino acid abundances
 
-- Weighted amino acid composition
+- Normalized amino acid composition
 
 - Summary tables for downstream statistical analyses
 
@@ -146,30 +144,8 @@ Statistical analyses
 
 ---
 
-## Applications
-
-This workflow can be applied to:
-
-- Rumen microbiome studies
-
-- Gut microbiome research
-
-- Environmental microbiomes
-
-- Fermentation systems
-
-- Any metatranscriptomic dataset where amino acid composition of the active microbial community is of interest
-
----
-
 ## Citation
 
-If you use this repository, please cite the associated publication:
+If you use this repository, please cite this repo until the manuscript is published.
 
 > *Citation will be added upon publication.*
-
----
-
-## License
-
-This project is distributed under the MIT License.
