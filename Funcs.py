@@ -119,7 +119,7 @@ def createDomains():
     Initializes the five domain classes - Archaea, Bacteria, Eukaryota, Viruses, Unknown 
     into global variables of their respective names.
     """
-   #print('Beginning createDomains')
+    print('Beginning createDomains')
 
     Domain.domDict['Archaea'] = Domain('Archaea')
     Domain.domDict['Bacteria'] = Domain('Bacteria')
@@ -144,7 +144,7 @@ def extractBLAST(filename):
 
     filename is a .csv file with entries separated by newlines, with commas separating values.
     """
-   #print('Beginning extractBLAST')
+    print('Beginning extractBLAST')
     assert type(filename) == str, 'filename is not a string'
     assert len(filename) > 0, 'filename is empty'
     assert filename[-4:] == '.csv', 'filename is not a .csv file'
@@ -162,7 +162,7 @@ def taxParse(data):
     data is a pandas DataFrame with entries as a string or nan, where the first column contains the proteinIDs, and there is a column named 'Domain' 
     and a column named 'Species'.
     """
-   #print('Beginning taxParse')
+    print('Beginning taxParse')
     assert isinstance(data, pd.DataFrame), 'data is not a pandas DataFrame'
     assert len(data) > 0, 'DataFrame is empty'
     assert 'Domain' in data.columns, "data does not have a column named 'Domain'"
@@ -191,7 +191,7 @@ def assignSpecies(dct):
     dct is a dict of protein keys with a value in the form {'Protein Name': ['domain', 'species'],...} where Protein Name, domain, and species
     are all strings of any length greater than 0. The value must have a length of 2
     """
-   #print('Beginning assignSpecies')
+    print('Beginning assignSpecies')
     assert isCatalogue(dct)
 
     for key, value in dct.items():
@@ -220,6 +220,9 @@ def assignSpecies(dct):
                 if value[1] not in Domain.domDict['Unknown'].species:
                     Domain.domDict['Unknown'].species[value[1]] = Species(value[1])
                     # print('Added '+value[1]+' to Unknown species list')
+       
+    # print('Bacteria species list is now '+str(Domain.domDict['Bacteria']species))
+    # print('Viruses species list is now '+str(Domain.domDict['Viruses'].species))
 
 
 def extractDataset(filename):
@@ -228,7 +231,7 @@ def extractDataset(filename):
 
     filename is a string of a .pep file.
     """
-   #print('Beginning extractDataset')
+    print('Beginning extractDataset')
     assert isinstance(filename, str), "filename is not a string"
     assert len(filename) > 0, "filename is empty"
     assert filename[-4:] == '.pep', "file type is not '.pep'"
@@ -253,7 +256,7 @@ def transformDataset(dataset):
     dataset is a string of protein information with correct format, with each protein entry beginning with '>'.
     """
     ### NEEDS OPTIMIZATION ###
-   #print('Beginning transformDataset')
+    print('Beginning transformDataset')
 
     assert isinstance(dataset, str), "dataset is not a string"
     assert len(dataset) > 0, "dataset is empty"
@@ -315,7 +318,7 @@ def assignIsoform(protMatch, catalogue):
     catalogue is a dict of proteins in the form {id : [domain, species]}
     Every key in protMatch must have a corresponding key in catalogue.
     """
-   #print('Beginning assignIsoform')
+    print('Beginning assignIsoform')
     assert isProtMatch(protMatch), "protMatch as invalid format"
     assert isCatalogue(catalogue), "catalogue has invalid format"
 
@@ -377,7 +380,7 @@ def extractAbundance(filename):
 
     filename is a nonempty string of a valid .csv file where the first line contains headers to the columns.
     """
-   #print('Beginning extractAbundance()')
+    print('Beginning extractAbundance()')
     assert isinstance(filename, str), 'filename is not a string'
     assert len(filename) > 0, 'filename is empty'
     assert filename[-4:] == '.csv', 'filename is not a .csv file'
@@ -396,7 +399,7 @@ def createSamples(abundanceData):
 
     abundanceData is a pandas DataFrame with columns as sample names. Each column header must be a non-empty string.
     """
-   #print('Beginning createSamples()')
+    print('Beginning createSamples()')
     assert isinstance(abundanceData, pd.DataFrame), "abundanceData is not a DataFrame"
     assert len(abundanceData) > 0, "abundanceData is empty"
 
@@ -478,7 +481,7 @@ def differentiateAbundance(abundanceData):
 
     abundanceData is a non-empty pandas DataFrame where the columns are sample names that exist in sampleDict.
     """
-   #print('Beginning differentiateAbundance()')
+    print('Beginning differentiateAbundance()')
     assert isinstance(abundanceData,pd.DataFrame)
     assert len(abundanceData) > 0
 
@@ -501,12 +504,12 @@ def computeRawAA(protMatch):
     sample is a string of a sample name (column in the abundance file)
     """
     ### NEEDS OPTIMIZATION ###
-   #print('beginning computeRawAA()')
+    print('beginning computeRawAA()')
     assert isProtMatch(protMatch), 'protMatch as invalid format'
     assert len(Sample.sampleDict) > 0, 'Sample.sampleDict is empty'
 
     aaSet = ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
-    directory = 'Samples_IsoformData'
+    directory = 'GRMC_Exports/Samples_IsoformData'
     os.makedirs(directory, exist_ok=True)
     for sampObj in Sample.sampleDict.values():
         full_path = os.path.join(directory, f'{sampObj.name}_IsoformData.csv')
@@ -561,7 +564,7 @@ def computePercentAA():
     """
     Edits the Sample.aaData DataFrame within each Sample object to contain correct percentage values.
     """
-   #print('Beginning computePercentAA')
+    print('Beginning computePercentAA')
     for value in Sample.sampleDict.values():
         sum = value.aaData['Total'].sum()
         for row in value.aaData.index:
@@ -582,7 +585,7 @@ def computeSpeciesAACounts():
     """
     Computes a Species.totalAA value for each species object, based on the Protein.totalAA values in the Species.isoforms.
     """
-   #print('Beginning computeSpeciesAACounts()')
+    print('Beginning computeSpeciesAACounts()')
     aaSet = ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
     
     for obj in Species.speciesDict.values():
@@ -618,7 +621,7 @@ def exportSampleData():
     """
     Creates a new file for each domain containing raw aa counts and percentage counts for each sample, with aa names as columns and sample names as rows.
     """
-   #print('Begninning exportSampleData()')
+    print('Begninning exportSampleData()')
     for domName, domObj in Domain.domDict.items():
         full_path = os.path.join(exportFolderName, f'{domName}_Raw_AA_Data_by_Sample.csv')
         with open(full_path, 'w') as file:
@@ -635,7 +638,7 @@ def exportProteinAACounts():
     Creates and writes to a new file called ProteinAACounts.csv
     File will contain Protein.proteinAACounts
     """
-   #print('Beginning exportProteinAACounts')
+    print('Beginning exportProteinAACounts')
     proteinsArray = Protein.proteinAACountsArray
     full_path = os.path.join(exportFolderName, 'ProteinAACounts.csv')
     with open(full_path, 'w') as file:
@@ -651,7 +654,7 @@ def exportSampleAAComparisons():
     """
     Creates a new file with a bar chart comparing feed efficienct cows' aa profile to feed inefficient cows' profile.
     """
-   #print('Beginning exportSampleAAComparisons()')
+    print('Beginning exportSampleAAComparisons()')
     aaSet = ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
 
     inefficientData = {'ala':[],'arg':[], 'asn':[],'asp':[],'cys':[],'gln':[], 'glu':[], 'gly':[], 'his':[],'ile':[],'leu':[],'lys':[],'met':[],'phe':[],'pro':[], 'ser':[], 'thr':[], 'trp':[], 'tyr':[],'val':[]}
@@ -710,7 +713,7 @@ def exportSpeciesData():
     """
     Creates a new .csv file containing Species names as rows and amino acids as columns.
     """
-   #print('Beginning exportSpeciesData()')
+    print('Beginning exportSpeciesData()')
     full_path = os.path.join(exportFolderName, 'Species_AA_Data.csv')
     with open(full_path, 'w') as file:
         for domain, obj in Domain.domDict.items():
@@ -724,7 +727,7 @@ def exportIsoformData():
     """
     Creates a new .csv file for each domain containing all isoforms within that domain, with total aa counts and percentage aa counts
     """
-   #print('Beginning exportIsoformData()')
+    print('Beginning exportIsoformData()')
     for domName,domObj in Domain.domDict.items():
         #print(f'domName is {domName}, domObj is {domObj}')
         full_path = os.path.join(exportFolderName, f'{domName}_Isoform_Data.csv')
@@ -744,7 +747,7 @@ def exportSamplePieCharts():
     
     Each pie chart represents the total number of amino acids by domain.
     """
-   #print('Beginning exportSamplePieCharts()')
+    print('Beginning exportSamplePieCharts()')
     i = 1
     plt.figure(figsize=(14,len(Sample.sampleDict)*1.8))
     plt.subplots_adjust(hspace = 1.2)
@@ -799,7 +802,7 @@ def exportAAHistograms(target_aa):
 
     target_aa is a string of one of the 20 three-letter abbreviations for amino acids, all lowercase.
     """
-   #print('Beginning exportSampleHistograms()')
+    print('Beginning exportSampleHistograms()')
     aaSet = ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
     
     aaHistData = []
@@ -849,7 +852,7 @@ def exportSpeciesAAHistogram(target_aa):
 
     target_aa is a lowercase string of one of the 20 three-letter amino acid abbreviations.
     """
-   #print('Beginning exportSpeciesAAHistogram')
+    print('Beginning exportSpeciesAAHistogram')
     assert isinstance(target_aa, str)
 
     data = []
@@ -885,7 +888,7 @@ def exportSelectAAData(aa):
 
     aa must be a string of an amino acid abbreviation. Any of ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
     """
-   #print('Beginning exportSelectAAData()')
+    print('Beginning exportSelectAAData()')
     assert isinstance(aa, str)
     assert len(aa) > 0
     assert aa in ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
