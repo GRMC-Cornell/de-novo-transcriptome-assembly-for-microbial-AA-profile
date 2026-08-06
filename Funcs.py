@@ -809,29 +809,36 @@ def exportSamplePieCharts():
     i = 1
     plt.figure(figsize=(14,len(Sample.sampleDict)*1.8))
     plt.subplots_adjust(hspace = 1.2)
-    avg_values = [0,0,0,0,0]
-    labels = ['Archaea', 'Bacteria', 'Eukaryota', 'Viruses', 'Unknown']
-    for sampleObj in Sample.sampleDict.values():
-        archaeaSum = sampleObj.aaData['Total_Archaea'].sum()
-        bacteriaSum = sampleObj.aaData['Total_Bacteria'].sum()
-        eukaryotaSum = sampleObj.aaData['Total_Eukaryota'].sum()
-        virusesSum = sampleObj.aaData['Total_Viruses'].sum()
-        unknownSum = sampleObj.aaData['Total_Unknown'].sum()
-        values = np.array([archaeaSum,bacteriaSum,eukaryotaSum,virusesSum,unknownSum])
-        avg_values[0] += archaeaSum
-        avg_values[1] += bacteriaSum
-        avg_values[2] += eukaryotaSum
-        avg_values[3] += virusesSum
-        avg_values[4] += unknownSum
 
-        #print('values are:\n'+str(values))
-        #print('avg_values are:\n'+str(avg_values))
-        if values.sum() != 0:
-            plt.subplot(-(-len(Sample.sampleDict)//2), 2, i)
-            plt.pie(values, radius = 1.5, autopct = '%1.1f%%')
-            plt.title(sampleObj.name, pad = 25)
-            plt.legend(labels, bbox_to_anchor = (1.2,0.7))
-        i += 1
+    full_path = os.path.join('GRMC_Exports/Pie_Chart_Data.txt')
+    with open(full_path, 'w') as file:
+        file.write('Sample Name, Archaea, Bacteria, Eukaryota, Viruses, Unknown')
+        avg_values = [0,0,0,0,0]
+        labels = ['Archaea', 'Bacteria', 'Eukaryota', 'Viruses', 'Unknown']
+        for sampleObj in Sample.sampleDict.values():
+            archaeaSum = sampleObj.aaData['Total_Archaea'].sum()
+            bacteriaSum = sampleObj.aaData['Total_Bacteria'].sum()
+            eukaryotaSum = sampleObj.aaData['Total_Eukaryota'].sum()
+            virusesSum = sampleObj.aaData['Total_Viruses'].sum()
+            unknownSum = sampleObj.aaData['Total_Unknown'].sum()
+            
+            values = np.array([archaeaSum,bacteriaSum,eukaryotaSum,virusesSum,unknownSum])
+            file.write('\n'+sampleObj.name)
+            file.write(str(values))
+            avg_values[0] += archaeaSum
+            avg_values[1] += bacteriaSum
+            avg_values[2] += eukaryotaSum
+            avg_values[3] += virusesSum
+            avg_values[4] += unknownSum
+
+            #print('values are:\n'+str(values))
+            #print('avg_values are:\n'+str(avg_values))
+            if values.sum() != 0:
+                plt.subplot(-(-len(Sample.sampleDict)//2), 2, i)
+                plt.pie(values, radius = 1.5, autopct = '%1.1f%%')
+                plt.title(sampleObj.name, pad = 25)
+                plt.legend(labels, bbox_to_anchor = (1.2,0.7))
+            i += 1
     plt.tight_layout()
     full_path = os.path.join(exportFolderName, 'Sample_Pie_Charts.png')
     plt.savefig(full_path)
