@@ -74,8 +74,8 @@ def isProtEntry(string):
     Returns True if string has the form 'Isoform.protein# ...)AminoAcidSequence*' where Isoform can be any 
     combination of letters (upper or lower case), numbers, and underscores starting with a letter or underscore; 
     protein# must have the form 'p#' where # is any combination of digits; ... can be anything that starts with 
-    a ' ' space; and AminoAcidSequence must be only letters. Note that there must be an ending parenthesis ')' 
-    before the amino acid sequence. The ending asterisk is optional.
+    a ' ' space; and AminoAcidSequence must be only uppercase letters abbreviating amino acids. Note that there 
+    must be an ending parenthesis ')' before the amino acid sequence. The ending asterisk is optional.
     Otherwise, returns False.
 
     string can be anything.
@@ -245,14 +245,14 @@ def extractDataset(filename):
     Returns data from filename as a single string, without whitespace.
 
     
-    filename is a non-empty string representing a .pep file in this folder.
+    filename is a non-empty string representing text file in this folder.
 
     filename is intended to be the protein sequence file.
     """
     print('Beginning extractDataset')
     assert isinstance(filename, str), "filename is not a string"
     assert len(filename) > 0, "filename is empty"
-    assert filename[-4:] == '.pep', "file type is not '.pep'"
+    
 
     try:
         with open(filename, "r") as dataset:
@@ -311,7 +311,8 @@ def newProtein(data):
 
     data has the form 'Isoform.protein# ...)AminoAcidSequence*' where Isoform can be any combination of letters (upper or lower
      case), numbers, and underscores starting with a letter or underscore; isoform has the form 'p#' where # is any combination of 
-    digits; ... can be anything that starts with a ' ' space; and AminoAcidSequence must be only letters. The ending asterisk is optional.
+    digits; ... can be anything that starts with a ' ' space; and AminoAcidSequence must be only uppercase letters abbreviating amino acids. 
+    The ending asterisk is optional.
     Validated by isProtEntry()
     """
     #print('Beginning newProtein')

@@ -14,6 +14,15 @@ abundanceFile = input('Enter the abundance File name. Make sure it is in the sam
 target_aa = input('Choose which amino acid to generate graphs. Enter its three-letter abbreviation: \n')
 target_aa = target_aa.lower()
 
+#### To automate the script further, de-comment the following lines ####
+#### after entering your file names into the respective sections.   ####
+#### Then feel free to comment out the lines above this.            ####
+
+# taxonomyFile = 'Enter your file path here'
+# proteinFile = 'Enter your file path here'
+# abundanceFile = 'Enter your file path here'
+# target_aa = 'Enter the 3 letter abbreviation here'
+
 # First, create the folder for exports.
 Funcs.createExportFolder()
 
