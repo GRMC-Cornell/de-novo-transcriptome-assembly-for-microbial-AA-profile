@@ -14,7 +14,7 @@ abundanceFile = input('Enter the abundance File name. Make sure it is in the sam
 target_aa = input('Choose which amino acid to generate graphs. Enter its three-letter abbreviation: \n')
 target_aa = target_aa.lower()
 
-
+# First, create the folder for exports.
 Funcs.createExportFolder()
 
 # Read, parse taxonomy file. Create Species and Domain objects.

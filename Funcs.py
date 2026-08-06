@@ -12,7 +12,7 @@ import os
 
 def isRegList(lst):
     """
-    Returns True if lst is a two-dimensional non-ragged list of strings, otherwise returns False.
+    Returns True if lst is a two-dimensional non-ragged list of only strings, otherwise returns False.
 
     lst can be anything.
     """
@@ -40,8 +40,11 @@ def isRegList(lst):
 
 def isCatalogue(dct):
     """
-    Returns True if dct is a dict in the form {'string', ('string','string'), ...}, where the strings are not empty, 
-    otherwise returns False.
+    Returns True if dct is a dict with keys as non-empty strings and values as tuples of length 2 containing only non-empty strings. 
+    {'string', ('string','string'), ...}.
+    Otherwise returns False.
+
+    dct can be anything.
     """
     #print('Beginning isCatalogue')
     if not isinstance(dct, dict):
@@ -68,10 +71,11 @@ def isCatalogue(dct):
 
 def isProtEntry(string):
     """
-    Returns True if string has the form 'ProteinID.isoform ...)aminoacidsequence*' where ProteinID can be any 
-    combination of letters (either case), numbers, and underscores starting with a letter or underscore, isoform must be the form 'p#' where # is any 
-    combination of digits, ... can be anything that starts with a ' ' space, and aminoacidsequence must be only letters. 
-    The ending asterisk is optional.
+    Returns True if string has the form 'Isoform.protein# ...)AminoAcidSequence*' where Isoform can be any 
+    combination of letters (upper or lower case), numbers, and underscores starting with a letter or underscore; 
+    protein# must have the form 'p#' where # is any combination of digits; ... can be anything that starts with 
+    a ' ' space; and AminoAcidSequence must be only letters. Note that there must be an ending parenthesis ')' 
+    before the amino acid sequence. The ending asterisk is optional.
     Otherwise, returns False.
 
     string can be anything.
@@ -94,11 +98,11 @@ def isProtEntry(string):
 
 def isProtMatch(data):
     """
-    Returns True if data is a dict with the form {ProteinID: ProteinObject, ...} where ProteinID 
-    is a string and ProteinObject is a Protein Object.
-    Returns False otherwise
+    Returns True if data is a dict with the values as nonempty strings, and keys as Protein objects.
+    {ProteinID: ProteinObject, ...} where ProteinID is a string and ProteinObject is a Protein Object.
+    Returns False otherwise.
 
-    data can be anything
+    data can be anything.
     """
     if isinstance(data, dict):
         if len(data) > 0:
@@ -117,7 +121,7 @@ def isProtMatch(data):
 def createDomains():
     """
     Initializes the five domain classes - Archaea, Bacteria, Eukaryota, Viruses, Unknown 
-    into global variables of their respective names.
+    into Domain objects and adds them to Domain.domDict.
     """
     print('Beginning createDomains')
 
@@ -140,8 +144,10 @@ def clearDomains():
 
 def extractBLAST(filename):
     """
-    Returns data from Taxonomy file as a pandas DataFrame.
+    Returns a pandas dataframe representing all data from filename.
 
+    filename should be the Taxonomy file, containing proteinIDs in the first column, and at least a Domain and Species column afterward.
+    
     filename is a .csv file with entries separated by newlines, with commas separating values.
     """
     print('Beginning extractBLAST')
@@ -154,27 +160,32 @@ def extractBLAST(filename):
     return df
 
 
-def taxParse(data):
+def taxParse(df):
     """
     Returns a dict of all proteins assigned to a list of their Domain and Species classification.
-    in the form {id: (domain, species), ...} where domain is 'Unknown' and species is 'None' if the information does not exist.
+    
+    The dict has keys as strings representing proteinIDs, and values as a tuple of length 2 containing non-empty strings.
+    First item in the tuple is the protein's domain, and the second item is the tuple's species. 
+    {id: (domain, species), ...} 
+    domain is 'Unknown' and species is 'None' if the information does not exist.
 
-    data is a pandas DataFrame with entries as a string or nan, where the first column contains the proteinIDs, and there is a column named 'Domain' 
+    df is a pandas DataFrame with entries as a string or nan, where the first column contains the proteinIDs, and there is a column named 'Domain' 
     and a column named 'Species'.
+    df is intended to be the product of extractBLAST().
     """
     print('Beginning taxParse')
-    assert isinstance(data, pd.DataFrame), 'data is not a pandas DataFrame'
-    assert len(data) > 0, 'DataFrame is empty'
-    assert 'Domain' in data.columns, "data does not have a column named 'Domain'"
-    assert 'Species' in data.columns, "data does not have a column named 'Species'"
+    assert isinstance(df, pd.DataFrame), 'df is not a pandas DataFrame'
+    assert len(df) > 0, 'dfFrame is empty'
+    assert 'Domain' in df.columns, "df does not have a column named 'Domain'"
+    assert 'Species' in df.columns, "df does not have a column named 'Species'"
 
     catalogue = {}
-    data = data.fillna('None')
-    domList = list(data['Domain'])
+    df = df.fillna('None')
+    domList = list(df['Domain'])
     assert all(isinstance(i, str) for i in domList)
-    specList = list(data['Species'])
+    specList = list(df['Species'])
     assert all(isinstance(i, str) for i in specList)
-    idList = list(data[data.columns[0]])
+    idList = list(df[df.columns[0]])
     assert all(isinstance(i, str) for i in idList)
     tax = list(zip(domList,specList))
     catalogue = dict(zip(idList,tax))
@@ -182,19 +193,26 @@ def taxParse(data):
     return catalogue
 
 
-def assignSpecies(dct):
+def assignSpecies(catalogue):
     """
-    Creates and assigns Species objects to the domains.
-    Takes a dictionary of proteins in the form {'Protein Name': ['domain', 'species'],...} where domain can be 'Unknown'and species can be 'None'.
-    If species is 'None', then no new species object will be created
+    Instantiates Species objects and assigns them to the domains.
+
+    Takes a dictionary of proteins in the form {'Protein Name': ['domain', 'species'],...} where domain can be 
+    'Unknown'and species can be 'None'.
+    A new Species object will be instantiated for every unique 'species' string in catalogue.
+    If species is 'None', then no new species object will be created.
     
-    dct is a dict of protein keys with a value in the form {'Protein Name': ['domain', 'species'],...} where Protein Name, domain, and species
-    are all strings of any length greater than 0. The value must have a length of 2
+
+    catalogue is a dict of with keys as non-empty strings representing proteinIDs and values as a tuple with 
+    length 2 containing only non-empty strings. 
+
+    The first item in the tuple should represent the protein's domain, and the second item should represent the protein's species.
+    {'Protein Name': ['domain', 'species'],...}
     """
     print('Beginning assignSpecies')
-    assert isCatalogue(dct)
+    assert isCatalogue(catalogue)
 
-    for key, value in dct.items():
+    for value in catalogue.values():
         if value[0] == 'Archaea':
             if value[1] != 'None':
                 if value[1] not in Domain.domDict['Archaea'].species:
@@ -220,16 +238,16 @@ def assignSpecies(dct):
                 if value[1] not in Domain.domDict['Unknown'].species:
                     Domain.domDict['Unknown'].species[value[1]] = Species(value[1])
                     # print('Added '+value[1]+' to Unknown species list')
-       
-    # print('Bacteria species list is now '+str(Domain.domDict['Bacteria']species))
-    # print('Viruses species list is now '+str(Domain.domDict['Viruses'].species))
 
 
 def extractDataset(filename):
     """
     Returns data from filename as a single string, without whitespace.
 
-    filename is a string of a .pep file.
+    
+    filename is a non-empty string representing a .pep file in this folder.
+
+    filename is intended to be the protein sequence file.
     """
     print('Beginning extractDataset')
     assert isinstance(filename, str), "filename is not a string"
@@ -248,12 +266,14 @@ def extractDataset(filename):
 
 def transformDataset(dataset):
     """
-    Returns a dictionary of protein ids matched with their objects in the form {ProteinID: Object, ...}.
-    ProteinID is Isoform.Protein#
+    Returns a dict with keys as proteinID strings and values as the matching Protein objects.
+    {ProteinID: Object, ...}
+    
+    ProteinID has the form Isoform.Protein#
     Parses a string of protein entries separated by '>' into individual strings, then parses individual strings for 
     relevant information, creating a Protein object for each and adding it to a dictionary.
 
-    dataset is a string of protein information with correct format, with each protein entry beginning with '>'.
+    dataset is a string of protein information with correct format (validated by isProtEntry()), with each protein entry beginning with '>'.
     """
     ### NEEDS OPTIMIZATION ###
     print('Beginning transformDataset')
@@ -280,14 +300,19 @@ def transformDataset(dataset):
 
 def newProtein(data):
     """
+    Returns a list of length 2 where the first value is the protein's id and the second is a new matching Protein object 
+    based on data.
+    
     Helper for transformDataset()
-    Creates a new protein object from data, parses isoform, protein#, asterisk status, and amino acid sequence.
+    Parses isoform, protein#, asterisk status, and amino acid sequence from data.
     Returns the new protein matched with its name, as a list: ['proteinID', Protein-Object] where proteinID is Isoform.protein#
 
     data is a non-empty string containing a single protein entry with id, isoform, and amino acid sequence.
-    data has the form 'ProteinID.isoform ...)aminoacidsequence*' where ProteinID can be any combination of letters (either case), 
-    numbers, and underscores starting with a letter or underscore, isoform must be the form 'p#' where # is any combination of 
-    digits, ... can be anything that starts with a ' ' space, and aminoacidsequence must be only letters. The ending asterisk is optional.
+
+    data has the form 'Isoform.protein# ...)AminoAcidSequence*' where Isoform can be any combination of letters (upper or lower
+     case), numbers, and underscores starting with a letter or underscore; isoform has the form 'p#' where # is any combination of 
+    digits; ... can be anything that starts with a ' ' space; and AminoAcidSequence must be only letters. The ending asterisk is optional.
+    Validated by isProtEntry()
     """
     #print('Beginning newProtein')
 
@@ -312,11 +337,22 @@ def newProtein(data):
 
 def assignIsoform(protMatch, catalogue):
     """
-    Assigns protein objects to their respective species objects and domain objects.
+    Assigns Protein objects to their unique Species objects and Domain objects.
 
-    protMatch is a dict of proteins in the form {id : object}
-    catalogue is a dict of proteins in the form {id : [domain, species]}
-    Every key in protMatch must have a corresponding key in catalogue.
+    Matches proteinIDs in protMatch to proteinIDs in catalogue to connect Protein Objects to taxonomy information.
+    If a proteinID in catalogue is not in protMatch, nothing happens. If a proteinID in protMatch is not in catalogue,
+    it is added to the Unknown domain.
+    Protein objects are 'assigned' by being added to the domain's isoforms attribute and to the species' isoforms attribute.
+    
+
+    protMatch is a dict of proteins with keys as non-empty strings representing proteinIDs and values as Protein objects.
+    {id : object, ...}
+
+    catalogue is a dict of with keys as non-empty strings representing proteinIDs and values as a tuple with 
+    length 2 containing only non-empty strings. The first item in the tuple should represent the protein's domain, and 
+    the second item should represent the protein's species.
+    {'Protein Name': ['domain', 'species'], ...}    
+
     """
     print('Beginning assignIsoform')
     assert isProtMatch(protMatch), "protMatch as invalid format"
@@ -376,9 +412,12 @@ def assignIsoform(protMatch, catalogue):
 
 def extractAbundance(filename):
     """
-    Opens filename using pandas and creates a DataFrame. Assigns DataFrame to Sample.abundanceData.
+    Returns a pandas DataFrame using data from filename.
+    
+    Opens filename using pandas and creates a DataFrame using read_csv. Assigns DataFrame to Sample.abundanceData.
 
-    filename is a nonempty string of a valid .csv file where the first line contains headers to the columns.
+    filename is a nonempty string of an existing .csv file where the first line contains headers to the columns.
+    filename is intended to be the abundance file where columns are sample names and rows are proteinIDs matched with abundance data.
     """
     print('Beginning extractAbundance()')
     assert isinstance(filename, str), 'filename is not a string'
@@ -395,9 +434,10 @@ def extractAbundance(filename):
 
 def createSamples(abundanceData):
     """
-    Creates a Sample object for every sample in the abundanceData DataFrame
+    Instantiates a Sample object for every sample in the abundanceData DataFrame, based on column names.
+    Assigns a dict with keys as sample names and values as matching Sample objects to Sample.sampleDict.
 
-    abundanceData is a pandas DataFrame with columns as sample names. Each column header must be a non-empty string.
+    abundanceData is a pandas DataFrame with columns as sample names. Each column header must be a unique non-empty string.
     """
     print('Beginning createSamples()')
     assert isinstance(abundanceData, pd.DataFrame), "abundanceData is not a DataFrame"
@@ -406,7 +446,7 @@ def createSamples(abundanceData):
     for s in abundanceData.columns:
         assert isinstance(s, str), 'Column '+str(s)+' is not a string'
         assert len(s) > 0, 'Empty column'
-
+        assert s not in Sample.sampleDict, 'Duplicate sample name'
         Sample.sampleDict[s] = Sample(s)
     Sample.sampleDict = dict(sorted(Sample.sampleDict.items()))
     #print('sampleDict is '+ str(Sample.sampleDict))
@@ -415,6 +455,7 @@ def createSamples(abundanceData):
 def applySampleMetadata():
     """
     Categorizes each sample as feed inefficient vs feed efficient based on metadata.
+    Assigns metadata to Sample attribute feedEfficient.
     """
     for sampObj in Sample.sampleDict.values():
         if sampObj.name == '18048XR-81-01_S0_L001':
@@ -470,6 +511,8 @@ def applySampleMetadata():
 def clearSamples():
     """
     Clears all samples objects from the class dictionary.
+
+    Used for testing.
     """
     Sample.sampleDict = {}
 
@@ -477,7 +520,7 @@ def clearSamples():
 def differentiateAbundance(abundanceData):
     """
     Breaks up abundanceData DataFrame into individual pandas Series by sample (by column).
-    Assigns each Series to its respective Sample object as Sample.proteinAbundance
+    Assigns each Series to its respective Sample object as Sample.proteinAbundance.
 
     abundanceData is a non-empty pandas DataFrame where the columns are sample names that exist in sampleDict.
     """
@@ -499,9 +542,11 @@ def computeRawAA(protMatch):
     Stores it in the attribute Sample.aaData
     Before calling, Sample.sampleDict must not be empty.
 
-    protMatch is a non-empty dictionary of protein IDs (strings) matched with Protein objects.
+    Creates a new file for each sample titled '{SampleName}_IsoformData.csv'. Stores files in a new folder called 'Samples_IsoformData'.
+    Each has the same format: Each row is a single protein. First 20 columns are individual amino acid totals, last column is the proteinID.
 
-    sample is a string of a sample name (column in the abundance file)
+    protMatch is a non-empty dictionary of protein IDs (strings) matched with Protein objects.
+    {proteinID: Potein Object, ...}
     """
     ### NEEDS OPTIMIZATION ###
     print('beginning computeRawAA()')
@@ -562,7 +607,7 @@ def computeRawAA(protMatch):
 
 def computePercentAA():
     """
-    Edits the Sample.aaData DataFrame within each Sample object to contain correct percentage values.
+    Updates the Sample.aaData DataFrame within each Sample object to contain correct percentage values.
     """
     print('Beginning computePercentAA')
     for value in Sample.sampleDict.values():
@@ -608,9 +653,7 @@ def computeSpeciesAACounts():
 
 def createExportFolder():
     """
-    Creates a new folder named name to house all subsequently created files.
-
-    name is a nonempty string. By default, name = 'Exports'.
+    Creates a new folder named GRMC_Exports to contain all files created by this program.
     """
     global exportFolderName
     exportFolderName = 'GRMC_Exports'
@@ -619,7 +662,12 @@ def createExportFolder():
 
 def exportSampleData():
     """
-    Creates a new file for each domain containing raw aa counts and percentage counts for each sample, with aa names as columns and sample names as rows.
+    Creates a new file for each domain, containing raw aa counts and percentage counts for each sample, with aa names as 
+    columns and sample names as rows.
+
+    Files are titled '{DomainName}_Raw_AA_Data_by_Sample.csv'
+
+    Domain.domDict must not be empty before calling this function.
     """
     print('Begninning exportSampleData()')
     for domName, domObj in Domain.domDict.items():
@@ -635,8 +683,13 @@ def exportSampleData():
 
 def exportProteinAACounts():
     """
-    Creates and writes to a new file called ProteinAACounts.csv
-    File will contain Protein.proteinAACounts
+    Creates a new file called ProteinAACounts.csv which contains all protein information without abundance multipliers.
+
+    Each row is an individual protein.
+    Columns: isoform, length, totalAA, ala, arg, asn, asp, cys, gln, glu, gly, his, ile, leu, lys, met, phe, pro, ser, thr, trp, tyr, val, 
+    alaPercent, argPercent, asnPercent, aspPercent, cysPercent, gluPercent, glnPercent, glyPercent, hisPercent, ilePercent, leuPercent, 
+    lysPercent, metPercent, phePercent, proPercent, serPercent, thrPercent, trpPercent, tyrPercent, valPercent
+
     """
     print('Beginning exportProteinAACounts')
     proteinsArray = Protein.proteinAACountsArray
@@ -649,10 +702,10 @@ def exportProteinAACounts():
         file.write('\nTotal amino acids processed:'+str(Protein.AllProteinsAA))
         
 
-
 def exportSampleAAComparisons():
     """
-    Creates a new file with a bar chart comparing feed efficienct cows' aa profile to feed inefficient cows' profile.
+    Creates a new file titled SampleAAComparison.png of a bar chart comparing feed efficienct cows' aa profile to feed inefficient cows' profile.
+    Creates a new file titled SampleAAComparisonData.xlsx that contains the data used to generate the bar chart.
     """
     print('Beginning exportSampleAAComparisons()')
     aaSet = ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
@@ -711,7 +764,8 @@ def exportSampleAAComparisons():
 
 def exportSpeciesData():
     """
-    Creates a new .csv file containing Species names as rows and amino acids as columns.
+    Creates a new .csv file titled 'Species_AA_Data.csv' containing a list of species and their amino acid counts (without abundance data).
+    Species are sorted by domain.
     """
     print('Beginning exportSpeciesData()')
     full_path = os.path.join(exportFolderName, 'Species_AA_Data.csv')
@@ -725,7 +779,11 @@ def exportSpeciesData():
 
 def exportIsoformData():
     """
-    Creates a new .csv file for each domain containing all isoforms within that domain, with total aa counts and percentage aa counts
+    Creates a new .csv file titled '{DomainName_Isoform_Data.csv' for each domain containing all isoforms within 
+    that domain, with total aa counts and percentage aa counts.
+
+    Each row is an individual protein and its amino acid data.
+    Columns: TrinityID, Total AA, Total ala, Total arg, Total asn, Total asp, Total cys, Total gln, Total glu, Total gly, Total his, Total ile, Total leu, Total lys, Total met, Total phe, Total pro, Total ser, Total thr, Total trp, Total tyr, Total val, Percent ala, Percent arg, Percent asn, Percent asp, Percent cys, Percent gln, Percent glu, Percent gly, Percent his, Percent ile, Percent leu, Percent lys, Percent met, Percent phe, Percent pro, Percent ser, Percent thr, Percent trp, Percent tyr, Percent val
     """
     print('Beginning exportIsoformData()')
     for domName,domObj in Domain.domDict.items():
@@ -795,12 +853,15 @@ def exportSamplePieCharts():
 
 def exportAAHistograms(target_aa):
     """
-    Creates a new file for each sample named '{Sample}_AAs_by_Isoforms.png' where {Sample} is the name of a sample.
+    Creates a new file for each sample named '{Sample}_AAs_by_Isoforms.png'.
     Each file contains 20 histograms, one for each amino acid, plotting number of isoforms on the y axis by percent abundance of amino acid
     on the x axis.
-    For target_aa, creates a new file called {aa}Histogram, with an independent image of the histogram for that aa% in proteins across all domains.
+    For target_aa, creates a new file called '{AA}IndependentHistogram.png', with an independent histogram for that aa% in proteins across all domains.
 
     target_aa is a string of one of the 20 three-letter abbreviations for amino acids, all lowercase.
+    Accepted abbreviations are: 'ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 
+    'ser', 'thr', 'trp', 'tyr','val'.
+
     """
     print('Beginning exportSampleHistograms()')
     aaSet = ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
@@ -847,10 +908,12 @@ def exportAAHistograms(target_aa):
 
 def exportSpeciesAAHistogram(target_aa):
     """
-    Creates a new file called {AA}SpeciesHistogram.png with a single histogram plotting number of species on the y axis
+    Creates a new file called {AA}SpeciesHistogram.png with a single histogram that plots number of species on the y axis
     and percent of target_aa on the x axis.
 
     target_aa is a lowercase string of one of the 20 three-letter amino acid abbreviations.
+    Accepted abbreviations are: 'ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 
+        'ser', 'thr', 'trp', 'tyr','val'.
     """
     print('Beginning exportSpeciesAAHistogram')
     assert isinstance(target_aa, str)
@@ -881,42 +944,49 @@ def exportSpeciesAAHistogram(target_aa):
     plt.close()
     
 
-def exportSelectAAData(aa):
+def exportSelectAAData(aa, cutoff = 1):
     """
-    Creates two new files for each domain, titled {Domain}Lowest{aa}Proteins.txt and {Domain}Highest{aa}Proteins.txt.
-    The Lowest file contains the lowest 10% proteins in the domain for aa and the Highest file contains the top 10%.
+    Creates two new files, titled 'Lowest{AA}Proteins.txt' and 'Highest{AA}Proteins.txt'.
+    The Lowest file contains the proteins with an aa% <= cutoff and the Highest file contains the proteins with an aa% >= 100-cutoff.
 
-    aa must be a string of an amino acid abbreviation. Any of ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
+    aa must be a lowercase string of an amino acid abbreviation. \
+        Accepted abbreviations are: 'ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe',
+        'pro', 'ser', 'thr', 'trp', 'tyr','val'
+    
+    cutoff must be a number (int or float) greater than 0 and less than 100.
+    cutoff has a default value of 1.
     """
     print('Beginning exportSelectAAData()')
     assert isinstance(aa, str)
     assert len(aa) > 0
     assert aa in ['ala','arg', 'asn','asp','cys','gln', 'glu', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
+    assert isinstance(cutoff, int) or isinstance(cutoff, float), 'cutoff is not a number'
+    assert 0 < cutoff < 100, 'cutoff is not between 0 and 100'
 
     aaPercents = []
     for protObj in Protein.proteinDict.values():
         aaPercents.append(getattr(protObj, f'{aa}Percent'))
     aaPercents = np.array(aaPercents)
-    cutoff1 = np.percentile(aaPercents, 1)
-    cutoff99 = np.percentile(aaPercents, 99)
-    bottom10 = {}
-    upper10 = {}
+    cutoffLow = np.percentile(aaPercents, cutoff)
+    cutoffHigh = np.percentile(aaPercents, 100-cutoff)
+    bottom = {}
+    upper = {}
     for protObj in Protein.proteinDict.values():
         protPercent = round(getattr(protObj, f'{aa}Percent'),2)
-        if protPercent <= cutoff1:
-            bottom10[protObj.id] = str(protPercent)
-        elif protPercent >= cutoff99:
-            upper10[protObj.id] = str(protPercent)
+        if protPercent <= cutoffLow:
+            bottom[protObj.id] = str(protPercent)
+        elif protPercent >= cutoffHigh:
+            upper[protObj.id] = str(protPercent)
 
     full_path = os.path.join(exportFolderName, f'Lowest{aa.upper()}Proteins.txt')
     with open(full_path, 'w') as file:
         file.write('Isoform,Percentage\n')
-        for id, percent in bottom10.items():
+        for id, percent in bottom.items():
             file.write(id+','+percent+'\n')
     full_path = os.path.join(exportFolderName, f'Highest{aa.upper()}Proteins.txt')
     with open(full_path, 'w') as file:
         file.write('Isoform,Percentage\n')
-        for id, percent in upper10.items():
+        for id, percent in upper.items():
             file.write(id+','+percent+'\n')
 
 

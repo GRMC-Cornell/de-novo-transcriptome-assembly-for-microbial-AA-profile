@@ -2,7 +2,16 @@ import pandas as pd
 import numpy as np
 
 class Domain(object):
-    """A class for each domain: Archaea, Bacteria, Eukaryotes, Viruses, Unknown
+    """
+    A class for each domain: Archaea, Bacteria, Eukaryotes, Viruses, Unknown
+
+    Class attribtues:
+    domDict: a dict with keys as domain names and values as the matching Domain object.
+
+    Each Domain object has a .name, .species, and .isoforms attribute.
+        .name: the domain name, a string
+        .species: all species found in the taxonomy file that match to the domain.
+        .isoforms: all isoforms found in the taxonomy file that match to the domain.
     """
 
     domDict = {}
@@ -20,6 +29,16 @@ class Domain(object):
 class Species(object):
     """
     A class for each species, containing domain information, isoform information, and amino acid information
+
+    Class attributes:
+        speciesDict: a dict with keys as species names and values as the matching Species object.
+
+    Each Species has a .name, .isoforms, .totalAA, and a .aa attribute for every aa in ['ala','arg', 'asn','asp','cys','glu', 
+    'gln', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
+        .name: name of the species, a string
+        .isoforms: a dict with keys as all isoforms matched to the species in the taxonomy file and values as the matching Protein object.
+        .totalAA: a float of the total amino acids the species contributes.
+
     """
     speciesDict = {}
     def __init__(self, name):
@@ -38,7 +57,22 @@ class Species(object):
 
 class Protein(object):
     """
-    A class for each protein, containing its data, id, protein#, species, domain, and amino acid information
+    A class for each protein, containing its data, id, protein#, species, domain, and amino acid information.
+
+    Class attributes:
+        proteinDict: a dict with keys as proteinIDs and values as the matching Protein object.
+        proteinAACounts: a list of tuples containing amino acid data for each proteinID.
+        proteinAACountsArray: an array where each row is an individual protein, and columns are 
+        proteinID, length, totalAA, ala, arg, asn, asp, cys, glu, gln, gly, his, ile, leu, lys,
+            met, phe, pro, ser, thr, trp, tyr, val, alaPercent, argPercent, asnPercent, aspPercent, 
+            cysPercent, gluPercent, glnPercent, glyPercent, hisPercent, ilePercent, leuPercent, 
+            lysPercent, metPercent, phePercent, proPercent, serPercent, thrPercent, trpPercent, tyrPercent, 
+            valPercent.
+        AllProteinsAA: contains the total number of amino acids contributed by all proteins.
+
+    Each Protein object has attributes .id, .p, .asterisk, .aaSeq, .domain, .species, and .aa for each aa in ['ala','arg', 
+    'asn','asp','cys','glu', 'gln', 'gly', 'his','ile','leu','lys','met','phe','pro', 'ser', 'thr', 'trp', 'tyr','val']
+
     """
     proteinDict = {}
     proteinAACounts = []
@@ -64,10 +98,9 @@ class Protein(object):
 
     def aaCount(self):
         """
-        Creates a class variable for each amino abbreviation, then counts 
-        the number of amino acids in a protein's amino acid sequence and saves the total to the
-        respective variable, such as Protein.arg = 12
-        Also saves the length of the amino acid sequence, such as Protein.len = 200
+        Creates a class variable for each amino abbreviation and counts the number of amino acids 
+        in a protein's amino acid sequence and saves the total to therespective variable, such as Protein.arg = 12
+        Saves the length of the amino acid sequence in .len, such as Protein.len = 200
         """
         #print('Beginning aaCount for protein ['+self.id+']')
         len = 0
@@ -343,6 +376,12 @@ class Protein(object):
 class Sample(object):
     """
     A class for each sample, containing its name and amino acid sums
+
+    Class Attributes:
+        sampleDict: a dict with keys as sample names and values as the matching Sample object.
+        abundanceData: either None or a pandas DataFrame containing data from the abundance file.
+
+    Each Sample object has attributes .name, .proteinAbundance, and .aaData.
     """
     sampleDict = {}
     abundanceData = None
