@@ -8,6 +8,8 @@ This pipeline assembles microbial transcripts, predicts protein coding sequences
 
 ## Overview
 
+See the wiki [here](https://github.com/GRMC-Cornell/de-novo-transcriptome-assembly-for-microbial-AA-profile/wiki#welcome-to-the-de-novo-transcriptome-assembly-for-microbial-aa-profile-wiki)!
+
 Traditional estimates of microbial protein composition rely on cultured organisms or experimentally determined reference values. This workflow instead reconstructs the expressed proteome directly from RNA sequencing data, allowing amino acid composition to be estimated from the transcriptionally active microbial community.
 
 The pipeline performs the following steps:
