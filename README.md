@@ -2,7 +2,7 @@
 
 A computational workflow to infer the amino acid composition of active microbial communities directly from metatranscriptomic sequencing data using de novo transcriptome assembly.
 
-This pipeline assembles microbial transcripts, predicts protein coding sequences, estimates transcript abundance, and calculates amino acid composition across the inferred proteome. It was developed to characterize the de novo amino acid profile of rumen microbial protein, but it can be adapted to other microbial ecosystems.
+This pipeline assembles microbial transcripts, predicts protein-coding sequences, estimates transcript abundance as transcripts per million (TPM), and calculates amino acid composition by weighting predicted protein AA residue counts by their parent transcript TPM. It was developed to characterize the de novo amino acid profile of rumen microbial protein, but it can be adapted to other microbial ecosystems.
 
 ---
 
@@ -10,7 +10,7 @@ This pipeline assembles microbial transcripts, predicts protein coding sequences
 
 See the wiki [here](https://github.com/GRMC-Cornell/de-novo-transcriptome-assembly-for-microbial-AA-profile/wiki#welcome-to-the-de-novo-transcriptome-assembly-for-microbial-aa-profile-wiki)!
 
-Traditional estimates of microbial protein composition rely on cultured organisms or experimentally determined reference values. This workflow instead reconstructs the expressed proteome directly from RNA sequencing data, allowing amino acid composition to be estimated from the transcriptionally active microbial community.
+Traditional estimates of microbial protein composition rely on cultured organisms or experimentally determined reference values. This workflow predicts protein sequences from assembled microbial transcripts and estimates their amino acid composition using transcript TPM as an abundance weight.
 
 The pipeline performs the following steps:
 
@@ -18,11 +18,11 @@ The pipeline performs the following steps:
 
 2. Predict protein coding sequences.
 
-3. Quantify transcript abundance.
+3. Quantify transcript abundance separately for each sample using Salmon TPM values.
 
-4. Weight protein sequences according to transcript abundance.
+4. Multiply each predicted protein’s AA residue counts by its parent transcript TPM, incorporating protein length through the residue counts.
 
-5. Calculate amino acid composition for the inferred microbial proteome.
+5. Sum the TPM-weighted AA residue counts to calculate residue percentages, and apply AA-specific residue molecular weights to calculate anhydrous AA mass percentages.
 
 6. Generate amino acid profiles for downstream statistical analyses.
 
