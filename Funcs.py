@@ -413,22 +413,38 @@ def assignIsoform(protMatch, catalogue):
 
 def extractAbundance(filename):
     """
-    Returns a pandas DataFrame using data from filename.
-    
-    Opens filename using pandas and creates a DataFrame using read_csv. Assigns DataFrame to Sample.abundanceData.
+    Returns a pandas DataFrame using TPM data from filename.
 
-    filename is a nonempty string of an existing .csv file where the first line contains headers to the columns.
-    filename is intended to be the abundance file where columns are sample names and rows are proteinIDs matched with abundance data.
+    Opens filename using pandas and creates a DataFrame using read_csv.
+    Assigns the DataFrame to Sample.abundanceData.
+
+    filename is a nonempty string pointing to an existing tab-delimited file.
+    The first line contains sample names, and the first column contains
+    parent transcript IDs. Remaining columns contain TPM values.
     """
     print('Beginning extractAbundance()')
     assert isinstance(filename, str), 'filename is not a string'
     assert len(filename) > 0, 'filename is empty'
-    assert filename[-4:] == '.csv', 'filename is not a .csv file'
+
     try:
-        abundanceData = pd.read_csv(filename, sep='	', index_col=0)
+        abundanceData = pd.read_csv(filename, sep='\t', index_col=0)
     except FileNotFoundError:
         raise FileNotFoundError("No such file exists")
+
     abundanceData.columns = abundanceData.columns.str.strip()
+
+    if abundanceData.empty or abundanceData.index.isna().any():
+        raise ValueError('TPM matrix is empty or contains missing transcript IDs.')
+
+    abundanceData.index = abundanceData.index.astype(str).str.strip()
+    if not abundanceData.index.is_unique or (abundanceData.index == '').any():
+        raise ValueError('Transcript IDs must be unique and nonempty.')
+
+    abundanceData = abundanceData.apply(pd.to_numeric, errors='raise')
+    values = abundanceData.to_numpy(dtype=float)
+    if not np.isfinite(values).all() or (values < 0).any():
+        raise ValueError('TPM values must be finite, nonnegative numbers.')
+
     Sample.abundanceData = abundanceData
     return abundanceData
 
@@ -603,7 +619,7 @@ def computeRawAA(protMatch):
     
     Domain.totalAA = totalAA                  
     for sampObj in Sample.sampleDict.values():
-        sampObj.aaData = pd.DataFrame(tempSampData[sampObj.name], columns = ['Total',  'Percentage',  'Total_Archaea',  'Total_Bacteria',  'Total_Eukaryota',  'Total_Viruses',  'Total_Unknown',  'Percent_Archaea',  'Percent_Bacteria',  'Percent_Eukaryota',  'Percent_Viruses',  'Percent_Unknown'], dtype = np.float64, index = aaSet).round()
+        sampObj.aaData = pd.DataFrame(tempSampData[sampObj.name], columns = ['Total',  'Percentage',  'Total_Archaea',  'Total_Bacteria',  'Total_Eukaryota',  'Total_Viruses',  'Total_Unknown',  'Percent_Archaea',  'Percent_Bacteria',  'Percent_Eukaryota',  'Percent_Viruses',  'Percent_Unknown'], dtype = np.float64, index = aaSet)
 
 
 def computePercentAA():
