@@ -10,7 +10,7 @@ pd.set_option('display.max_colwidth', None)
 
 taxonomyFile =  input("Enter the Taxonomy File name. Make sure it is in the same folder as this script. \n") 
 proteinFile = input("Enter the Protein Sequence File name. Make sure it is in the same folder as this script.\n") 
-abundanceFile = input('Enter the abundance File name. Make sure it is in the same folder as this script. \n')
+abundanceFile = input('Enter the transcript TPM matrix filename (tab-delimited; transcript IDs in the first column, samples in the remaining columns):\n').strip()
 target_aa = input('Choose which amino acid to generate graphs. Enter its three-letter abbreviation: \n')
 target_aa = target_aa.lower()
 
