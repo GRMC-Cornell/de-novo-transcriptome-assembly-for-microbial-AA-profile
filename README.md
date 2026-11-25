@@ -80,9 +80,11 @@ Upstream tools include:
 
 Input files should include:
 
-- Predicted protein FASTA file (.faa)
+- Predicted protein sequences in FASTA format (.pep or .faa).
 
-- Transcript abundance table (.csv)
+- A transcript-level TPM matrix, with transcript IDs in rows and samples in columns.
+
+- transcript-to-taxonomic-group mapping table for domain-specific AA profiles.
 
 ---
 
@@ -90,11 +92,13 @@ Input files should include:
 
 The pipeline generates:
 
-- Amino acid counts
+- TPM-weighted AA residue totals.
 
-- Relative amino acid abundances
+- Amino acid residue percentages.
 
-- Normalized amino acid composition
+- Anhydrous AA mass percentages calculated using AA-specific residue molecular weights.
+
+- Overall and, when taxonomy is supplied, domain-specific AA profiles.
 
 - Summary tables for downstream statistical analyses
 
@@ -122,19 +126,19 @@ Protein prediction
 
         ▼
 
-Transcript abundance estimation
+Transcript abundance estimation (Salmon TPM)
 
         │
 
         ▼
 
-Weighted protein abundance
+Weighted protein abundance (AA residue counts × parent transcript TPM)
 
         │
 
         ▼
 
-Amino acid composition
+Amino acid composition (AA residue percentages and anhydrous AA mass percentages)
 
         │
 
@@ -150,4 +154,4 @@ Statistical analyses
 
 If you use this repository, please cite this repo until the manuscript is published.
 
-> *Citation will be added upon publication.*
+> *Arshad, M. A., M. A. Majersik, K. Nichols, B. C. Weimer, R. Profeta, M. I. Marcondes, R. S. Bisinotto, J. E. P. Santos, E. S. Ribeiro, F. S. Lima, and H. F. Monteiro. 2026. A molecular framework for rumen microbial protein: de novo characterization of the amino acid profile. Manuscript under revision (R1), Journal of Dairy Science.*
